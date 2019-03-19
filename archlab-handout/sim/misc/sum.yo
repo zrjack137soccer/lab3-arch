@@ -1,0 +1,49 @@
+                            | # Zachry Jacklin Section 2 NetId: jacklinz
+0x000:                      | 	.pos 0
+0x000:                      | .init:
+0x000: 30f40001000000000000 | 	irmovq Stack, %rsp
+0x00a: 30f50001000000000000 | 	irmovq Stack, %rbp
+0x014: 805000000000000000   | 	call Main
+0x01d: 00                   | 	halt
+                            | 
+0x020:                      | .align 8
+                            | 
+0x020:                      | ele1:
+0x020: 0a00000000000000     | 	.quad 0x00a
+0x028: 3000000000000000     | 	.quad ele2
+                            | 
+0x030:                      | ele2:
+0x030: b000000000000000     | 	.quad 0x0b0
+0x038: 4000000000000000     | 	.quad ele3
+                            | 
+0x040:                      | ele3:
+0x040: 000c000000000000     | 	.quad 0xc00
+0x048: 0000000000000000     | 	.quad 0
+                            | 
+0x050:                      | Main:
+0x050: 30f02000000000000000 | 	irmovq ele1, %rax
+0x05a: a00f                 | 	pushq %rax
+0x05c: 806600000000000000   | 	call sum_list
+0x065: 90                   | 	ret
+                            | 
+0x066:                      | sum_list:
+0x066: a05f                 | 	pushq %rbp
+0x068: 2045                 | 	rrmovq %rsp,%rbp
+0x06a: 6300                 | 	xorq %rax,%rax
+0x06c: 50251000000000000000 | 	mrmovq 16(%rbp),%rdx
+0x076: 6222                 | 	andq %rdx,%rdx
+0x078: 73ae00000000000000   | 	je End
+0x081: 30f10800000000000000 | 	irmovq $8, %rcx
+0x08b:                      | Loop:
+0x08b: 50320000000000000000 | 	mrmovq (%rdx),%rbx
+0x095: 6030                 | 	addq %rbx,%rax
+0x097: 6012                 | 	addq %rcx, %rdx
+0x099: 50220000000000000000 | 	mrmovq (%rdx),%rdx
+0x0a3: 6222                 | 	andq %rdx,%rdx
+0x0a5: 748b00000000000000   | 	jne Loop
+0x0ae:                      | End:	
+0x0ae: b05f                 | 	popq %rbp
+0x0b0: 90                   | 	ret
+                            | 
+0x100:                      | 	.pos 0x100
+0x100:                      | Stack:

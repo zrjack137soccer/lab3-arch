@@ -1,0 +1,48 @@
+# Zachry Jacklin Section 2 NetId: jacklinz
+
+	.pos 0
+.init:
+	irmovq Stack, %rsp
+	irmovq Stack, %rbp
+	call Main
+	halt
+
+.align 8
+ele1:
+	.quad 0x00a
+	.quad ele2
+
+ele2:
+	.quad 0x0b0
+	.quad ele3
+
+ele3:
+	.quad 0xc00
+	.quad 0
+
+Main:
+	irmovq ele1, %rax
+	pushq %rax
+	pushq %rbp
+	rrmovq %rsp, %rbp
+	irmovq $8, %rcx
+	mrmovq 16(%rbp), %rdx
+	irmovq $0, %rax
+	call rsum
+	ret
+
+rsum:
+	mrmovq (%rdx), %rbx
+	addq %rbx, %rax
+	andq %rdx, %rdx
+	je End
+	addq %rcx, %rdx
+	mrmovq (%rdx), %rdx
+	call rsum
+
+End:
+	popq %rbp
+	ret
+
+	.pos 0x400
+Stack:
