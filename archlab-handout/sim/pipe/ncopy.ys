@@ -3,9 +3,14 @@
 # ncopy.ys - Copy a src block of len words to dst.
 # Return the number of positive words (>0) contained in src.
 #
-# Include your name and ID here.
+# Zachry Jacklin Section 2 NetId: jacklinz
 #
-# Describe how and why you modified the baseline code.
+# In my code I modified it in the following steps:
+# 1. I added iaddq to shorten steps
+# 2. I made sure to store each point of src in a seperate register from %r8 to %rbx
+# 3. I added more loops to do the process of unrolling
+# 4. I initialized all the registers in loop to avoid any bad copying.
+#
 #
 ##################################################################
 # Do not modify this portion
@@ -16,23 +21,95 @@ ncopy:
 ##################################################################
 # You can modify this portion
 	# Loop header
-	xorq %rax,%rax		# count = 0;
-	andq %rdx,%rdx		# len <= 0?
-	jle Done		# if so, goto Done:
 
-Loop:	mrmovq (%rdi), %r10	# read val from src...
-	rmmovq %r10, (%rsi)	# ...and store it to dst
-	andq %r10, %r10		# val <= 0?
-	jle Npos		# if so, goto Npos:
-	irmovq $1, %r10
-	addq %r10, %rax		# count++
-Npos:	irmovq $1, %r10
-	subq %r10, %rdx		# len--
-	irmovq $8, %r10
-	addq %r10, %rdi		# src++
-	addq %r10, %rsi		# dst++
-	andq %rdx,%rdx		# len > 0?
-	jg Loop			# if so, goto Loop:
+	xorq %rax, %rax		# set count to 0
+	rrmovq %rdx, %rcx	# copy len to %rcx
+	iaddq $-8, %rcx		# %rcx - 8
+	jle Next		# jump to next
+
+Loop:	
+	mrmovq (%rdi), %r8	# src[i] to %r8
+	mrmovq 8(%rdi), %r9	# src[i+1] to %r9
+	mrmovq 16(%rdi), %r10	# src[i+2] to %r10
+	mrmovq 24(%rdi), %r11	# src[i+3] to %r11
+	mrmovq 32(%rdi), %r12	# src[i+4] to %r12
+	mrmovq 40(%rdi), %r13	# src[i+5] to %r13
+	mrmovq 48(%rdi), %r14	# src[i+6] to %r14
+	mrmovq 56(%rdi), %rbx	# src[i+7] to %rbx
+	rmmovq %r8, (%rsi)	# src[i] to dst[i]
+	rmmovq %r9, 8(%rsi)	# src[i+1] to dst[i+1]
+	rmmovq %r10, 16(%rsi)	# src[i+2] to dst[i+2]
+	rmmovq %r11, 24(%rsi)	# src[i+3] to dst[i+3] 
+	rmmovq %r12, 32(%rsi)	# src[i+4] to dst[i+4]
+	rmmovq %r13, 40(%rsi)	# src[i+5] to dst[i+5]
+	rmmovq %r14, 48(%rsi)	# src[i+6] to dst[i+6]
+	rmmovq %rbx, 56(%rsi)	# src[i+7] to dst[i+7]
+	
+ele1:
+	andq %r8, %r8		# %r8 < 0?
+	jle ele2		# jump to element2 if less than 
+	iaddq $1, %rax		# count++
+
+ele2:
+	andq %r9, %r9		# %r9 < 0?
+	jle ele3		# jump to element3 if less than
+	iaddq $1, %rax		# count++
+
+ele3:
+	andq %r10, %r10		# %r10 < 0?
+	jle ele4		# jump to element4 if less than
+	iaddq $1, %rax		# count++
+
+ele4:
+	andq %r11, %r11		# %r11 < 0?
+	jle ele5		# jump to element5 if less than
+	iaddq $1, %rax		# count++
+
+ele5:
+	andq %r12, %r12		# %r12 < 0?
+	jle ele6		# jump to element6 if less than
+	iaddq $1, %rax		# count++
+
+ele6:
+	andq %r13, %r13		# %r13 < 0?
+	jle ele7		# jump to element7 if less than
+	iaddq $1, %rax		# count++
+
+ele7:
+	andq %r14, %r14		# %r14 < 0?
+	jle ele8		# jump to element8 if less than
+	iaddq $1, %rax		# count++
+
+ele8:
+	andq %rbx, %rbx		# %rbx < 0?
+	jle Npos1		# jump to Npos1 if less than
+	iaddq $1, %rax		# count++
+
+Npos1:
+	iaddq $64, %rdi		# src++
+	iaddq $64, %rsi		# dst++
+	iaddq $-8, %rdx		# len--
+	iaddq $-8, %rcx		# (len - 8)--
+	jg Loop
+
+Next:
+	andq %rdx, %rdx		# %rdx < 0?
+	jle Done		# jump to done if less than
+
+Loop2:
+	mrmovq (%rdi), %rbx	# src[i]++ to %rbx
+	rmmovq %rbx, (%rsi)	# src[i]++ to dst[i]++
+	andq %rbx, %rbx		# %rbx < 0?
+	jle Npos2		# jump to Npos2 if less than
+	iaddq $1, %rax		# count++
+
+Npos2:
+	iaddq $8, %rdi		# (src + 8)++
+	iaddq $8, %rsi		# (dst + 8)++
+	iaddq $-1, %rdx		# len--
+	jg Loop2
+	
+
 ##################################################################
 # Do not modify the following section of code
 # Function epilogue.
